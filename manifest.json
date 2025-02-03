@@ -20,5 +20,6 @@
         "type": "string"
       }
     }
-  }
+  },
+  "homepage_url": "https://your-plugin-name-main.ubiquity.workers.dev"
 }
