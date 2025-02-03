@@ -38,7 +38,7 @@ export async function callPersonalAgent(context: Context) {
       throw new Error(`No personal agent config found on ${personalAgentOwner}/personal-agent`);
     }
 
-    const patDecrypted = await decryptKeys(personalAgentConfig.config.GITHUB_PAT_ENCRYPTED, context.env.X25519_PRIVATE_KEY, logger);
+    const patDecrypted = await decryptKeys(context, personalAgentConfig.config.GITHUB_PAT_ENCRYPTED, context.env.X25519_PRIVATE_KEY);
 
     const paOctokit = new Octokit({
       auth: patDecrypted.decryptedText,

@@ -1,10 +1,10 @@
-import { Logs } from "@ubiquity-os/ubiquity-os-logger";
 import sodium from "libsodium-wrappers";
+import { Context } from "../types";
 
 export async function decryptKeys(
+  context: Context,
   cipherText: string,
-  x25519PrivateKey: string,
-  logger: Logs
+  x25519PrivateKey: string
 ): Promise<{ decryptedText: string; publicKey: string } | { decryptedText: null; publicKey: null }> {
   await sodium.ready;
 
@@ -12,11 +12,11 @@ export async function decryptKeys(
 
   publicKey = await getScalarKey(x25519PrivateKey);
   if (!publicKey) {
-    logger.error("Public key is null");
+    context.logger.error("Public key is null");
     return { decryptedText: null, publicKey: null };
   }
   if (!cipherText?.length) {
-    logger.error("No cipherText was provided");
+    context.logger.error("No cipherText was provided");
     return { decryptedText: null, publicKey: null };
   }
   const binaryPublic = sodium.from_base64(publicKey, sodium.base64_variants.URLSAFE_NO_PADDING);

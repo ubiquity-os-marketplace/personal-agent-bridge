@@ -148,7 +148,7 @@ function createContextInner(
       installation: { id: 1 } as Context["payload"]["installation"],
       organization: { login: STRINGS.USER } as Context["payload"]["organization"],
     } as Context["payload"],
-    logger: new Logs("debug"),
+    logger: new Logs("debug") as unknown as Context["logger"],
     config: {},
     env: {
       X25519_PRIVATE_KEY: "lkQCx6wMxB7V8oXVxWDdEY2xqAF5VqJx7dLIK4qMyIw",
