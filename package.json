@@ -37,7 +37,9 @@
     "@ubiquity-os/ubiquity-os-logger": "^1.4.0",
     "dotenv": "16.4.7",
     "hono": "^4.6.19",
-    "ts-node": "^10.9.2"
+    "libsodium-wrappers": "^0.7.15",
+    "ts-node": "^10.9.2",
+    "yaml": "^2.7.0"
   },
   "devDependencies": {
     "@commitlint/cli": "19.6.1",
@@ -49,6 +51,7 @@
     "@jest/globals": "29.7.0",
     "@mswjs/data": "0.16.2",
     "@types/jest": "^29.5.14",
+    "@types/libsodium-wrappers": "^0.7.14",
     "@types/node": "22.12.0",
     "cross-env": "^7.0.3",
     "cspell": "8.17.3",
