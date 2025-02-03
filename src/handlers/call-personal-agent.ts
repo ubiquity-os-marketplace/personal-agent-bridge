@@ -59,7 +59,7 @@ export async function callPersonalAgent(context: Context) {
         authToken: patDecrypted.decryptedText,
         command: "null",
         ref: defaultBranch,
-        signature: "",
+        signature: "no-signature",
       },
     });
   } catch (error) {
