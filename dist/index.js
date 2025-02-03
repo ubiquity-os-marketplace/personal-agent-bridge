@@ -64386,7 +64386,7 @@ async function callPersonalAgent(e) {
         authToken: et.decryptedText,
         command: "null",
         ref: tt,
-        signature: "",
+        signature: "no-signature",
       },
     });
   } catch (e) {
