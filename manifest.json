@@ -6,5 +6,6 @@
     "default": {},
     "type": "object",
     "properties": {}
-  }
+  },
+  "homepage_url": "https://your-plugin-name-bridge.ubiquity.workers.dev"
 }
