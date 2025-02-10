@@ -74,7 +74,7 @@ describe("Personal Agent Bridge Plugin tests", () => {
 
     expect(context.eventName).toBe(commentCreateEvent);
 
-    await expect(runPlugin(context)).resolves.toBeUndefined();
+    await expect(runPlugin(context)).rejects.not.toBeUndefined();
 
     expect(infoSpy).toHaveBeenNthCalledWith(1, `Comment received:`, {
       caller: STRINGS.CALLER_LOGS_ANON,
@@ -83,7 +83,7 @@ describe("Personal Agent Bridge Plugin tests", () => {
       comment: STRINGS.commentBody,
     });
 
-    expect(errorSpy).toHaveBeenNthCalledWith(1, `Error dispatching workflow: Error: incorrect key pair for the given ciphertext`);
+    expect(errorSpy).toHaveBeenNthCalledWith(1, `Error dispatching workflow: Error: incorrect key pair for the given ciphertext`, expect.anything());
   });
 
   it("Should fail on wrong organization/owner", async () => {
@@ -96,7 +96,7 @@ describe("Personal Agent Bridge Plugin tests", () => {
     );
     expect(context.eventName).toBe(commentCreateEvent);
 
-    await expect(runPlugin(context)).resolves.toBeUndefined();
+    await expect(runPlugin(context)).rejects.not.toBeUndefined();
 
     expect(infoSpy).toHaveBeenNthCalledWith(1, `Comment received:`, {
       caller: STRINGS.CALLER_LOGS_ANON,
