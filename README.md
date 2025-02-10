@@ -14,7 +14,7 @@ Here, `username` must correspond to a GitHub user who has set up their own fork 
 
 ## Plugin configuration
 
-Add the following to your .ubiquity-os.config.yml file.
+Add the following to your `.github/personal-agent.config.yml` file.
 
 ```yaml
 plugins:
