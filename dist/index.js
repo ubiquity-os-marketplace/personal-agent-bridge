@@ -5394,271 +5394,6 @@ var r = {
       });
     }
   },
-  2801: (e, r, et) => {
-    const At = et(9896);
-    const tt = et(6928);
-    const rt = et(857);
-    const st = et(6982);
-    const ot = et(5094);
-    const nt = ot.version;
-    const it = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/gm;
-    function parse(e) {
-      const r = {};
-      let et = e.toString();
-      et = et.replace(/\r\n?/gm, "\n");
-      let At;
-      while ((At = it.exec(et)) != null) {
-        const e = At[1];
-        let et = At[2] || "";
-        et = et.trim();
-        const tt = et[0];
-        et = et.replace(/^(['"`])([\s\S]*)\1$/gm, "$2");
-        if (tt === '"') {
-          et = et.replace(/\\n/g, "\n");
-          et = et.replace(/\\r/g, "\r");
-        }
-        r[e] = et;
-      }
-      return r;
-    }
-    function _parseVault(e) {
-      const r = _vaultPath(e);
-      const et = at.configDotenv({ path: r });
-      if (!et.parsed) {
-        const e = new Error(`MISSING_DATA: Cannot parse ${r} for an unknown reason`);
-        e.code = "MISSING_DATA";
-        throw e;
-      }
-      const At = _dotenvKey(e).split(",");
-      const tt = At.length;
-      let rt;
-      for (let e = 0; e < tt; e++) {
-        try {
-          const r = At[e].trim();
-          const tt = _instructions(et, r);
-          rt = at.decrypt(tt.ciphertext, tt.key);
-          break;
-        } catch (r) {
-          if (e + 1 >= tt) {
-            throw r;
-          }
-        }
-      }
-      return at.parse(rt);
-    }
-    function _log(e) {
-      console.log(`[dotenv@${nt}][INFO] ${e}`);
-    }
-    function _warn(e) {
-      console.log(`[dotenv@${nt}][WARN] ${e}`);
-    }
-    function _debug(e) {
-      console.log(`[dotenv@${nt}][DEBUG] ${e}`);
-    }
-    function _dotenvKey(e) {
-      if (e && e.DOTENV_KEY && e.DOTENV_KEY.length > 0) {
-        return e.DOTENV_KEY;
-      }
-      if (process.env.DOTENV_KEY && process.env.DOTENV_KEY.length > 0) {
-        return process.env.DOTENV_KEY;
-      }
-      return "";
-    }
-    function _instructions(e, r) {
-      let et;
-      try {
-        et = new URL(r);
-      } catch (e) {
-        if (e.code === "ERR_INVALID_URL") {
-          const e = new Error(
-            "INVALID_DOTENV_KEY: Wrong format. Must be in valid uri format like dotenv://:key_1234@dotenvx.com/vault/.env.vault?environment=development"
-          );
-          e.code = "INVALID_DOTENV_KEY";
-          throw e;
-        }
-        throw e;
-      }
-      const At = et.password;
-      if (!At) {
-        const e = new Error("INVALID_DOTENV_KEY: Missing key part");
-        e.code = "INVALID_DOTENV_KEY";
-        throw e;
-      }
-      const tt = et.searchParams.get("environment");
-      if (!tt) {
-        const e = new Error("INVALID_DOTENV_KEY: Missing environment part");
-        e.code = "INVALID_DOTENV_KEY";
-        throw e;
-      }
-      const rt = `DOTENV_VAULT_${tt.toUpperCase()}`;
-      const st = e.parsed[rt];
-      if (!st) {
-        const e = new Error(`NOT_FOUND_DOTENV_ENVIRONMENT: Cannot locate environment ${rt} in your .env.vault file.`);
-        e.code = "NOT_FOUND_DOTENV_ENVIRONMENT";
-        throw e;
-      }
-      return { ciphertext: st, key: At };
-    }
-    function _vaultPath(e) {
-      let r = null;
-      if (e && e.path && e.path.length > 0) {
-        if (Array.isArray(e.path)) {
-          for (const et of e.path) {
-            if (At.existsSync(et)) {
-              r = et.endsWith(".vault") ? et : `${et}.vault`;
-            }
-          }
-        } else {
-          r = e.path.endsWith(".vault") ? e.path : `${e.path}.vault`;
-        }
-      } else {
-        r = tt.resolve(process.cwd(), ".env.vault");
-      }
-      if (At.existsSync(r)) {
-        return r;
-      }
-      return null;
-    }
-    function _resolveHome(e) {
-      return e[0] === "~" ? tt.join(rt.homedir(), e.slice(1)) : e;
-    }
-    function _configVault(e) {
-      _log("Loading env from encrypted .env.vault");
-      const r = at._parseVault(e);
-      let et = process.env;
-      if (e && e.processEnv != null) {
-        et = e.processEnv;
-      }
-      at.populate(et, r, e);
-      return { parsed: r };
-    }
-    function configDotenv(e) {
-      const r = tt.resolve(process.cwd(), ".env");
-      let et = "utf8";
-      const rt = Boolean(e && e.debug);
-      if (e && e.encoding) {
-        et = e.encoding;
-      } else {
-        if (rt) {
-          _debug("No encoding is specified. UTF-8 is used by default");
-        }
-      }
-      let st = [r];
-      if (e && e.path) {
-        if (!Array.isArray(e.path)) {
-          st = [_resolveHome(e.path)];
-        } else {
-          st = [];
-          for (const r of e.path) {
-            st.push(_resolveHome(r));
-          }
-        }
-      }
-      let ot;
-      const nt = {};
-      for (const r of st) {
-        try {
-          const tt = at.parse(At.readFileSync(r, { encoding: et }));
-          at.populate(nt, tt, e);
-        } catch (e) {
-          if (rt) {
-            _debug(`Failed to load ${r} ${e.message}`);
-          }
-          ot = e;
-        }
-      }
-      let it = process.env;
-      if (e && e.processEnv != null) {
-        it = e.processEnv;
-      }
-      at.populate(it, nt, e);
-      if (ot) {
-        return { parsed: nt, error: ot };
-      } else {
-        return { parsed: nt };
-      }
-    }
-    function config(e) {
-      if (_dotenvKey(e).length === 0) {
-        return at.configDotenv(e);
-      }
-      const r = _vaultPath(e);
-      if (!r) {
-        _warn(`You set DOTENV_KEY but you are missing a .env.vault file at ${r}. Did you forget to build it?`);
-        return at.configDotenv(e);
-      }
-      return at._configVault(e);
-    }
-    function decrypt(e, r) {
-      const et = Buffer.from(r.slice(-64), "hex");
-      let At = Buffer.from(e, "base64");
-      const tt = At.subarray(0, 12);
-      const rt = At.subarray(-16);
-      At = At.subarray(12, -16);
-      try {
-        const e = st.createDecipheriv("aes-256-gcm", et, tt);
-        e.setAuthTag(rt);
-        return `${e.update(At)}${e.final()}`;
-      } catch (e) {
-        const r = e instanceof RangeError;
-        const et = e.message === "Invalid key length";
-        const At = e.message === "Unsupported state or unable to authenticate data";
-        if (r || et) {
-          const e = new Error("INVALID_DOTENV_KEY: It must be 64 characters long (or more)");
-          e.code = "INVALID_DOTENV_KEY";
-          throw e;
-        } else if (At) {
-          const e = new Error("DECRYPTION_FAILED: Please check your DOTENV_KEY");
-          e.code = "DECRYPTION_FAILED";
-          throw e;
-        } else {
-          throw e;
-        }
-      }
-    }
-    function populate(e, r, et = {}) {
-      const At = Boolean(et && et.debug);
-      const tt = Boolean(et && et.override);
-      if (typeof r !== "object") {
-        const e = new Error("OBJECT_REQUIRED: Please check the processEnv argument being passed to populate");
-        e.code = "OBJECT_REQUIRED";
-        throw e;
-      }
-      for (const et of Object.keys(r)) {
-        if (Object.prototype.hasOwnProperty.call(e, et)) {
-          if (tt === true) {
-            e[et] = r[et];
-          }
-          if (At) {
-            if (tt === true) {
-              _debug(`"${et}" is already defined and WAS overwritten`);
-            } else {
-              _debug(`"${et}" is already defined and was NOT overwritten`);
-            }
-          }
-        } else {
-          e[et] = r[et];
-        }
-      }
-    }
-    const at = {
-      configDotenv: configDotenv,
-      _configVault: _configVault,
-      _parseVault: _parseVault,
-      config: config,
-      decrypt: decrypt,
-      parse: parse,
-      populate: populate,
-    };
-    e.exports.configDotenv = at.configDotenv;
-    e.exports._configVault = at._configVault;
-    e.exports._parseVault = at._parseVault;
-    e.exports.config = at.config;
-    e.exports.decrypt = at.decrypt;
-    e.exports.parse = at.parse;
-    e.exports.populate = at.populate;
-    e.exports = at;
-  },
   3251: function (e) {
     (function (r, et) {
       true ? (e.exports = et()) : 0;
@@ -54764,11 +54499,6 @@ var r = {
     r.visit = visit;
     r.visitAsync = visitAsync;
   },
-  5094: (e) => {
-    e.exports = JSON.parse(
-      '{"name":"dotenv","version":"16.4.5","description":"Loads environment variables from .env file","main":"lib/main.js","types":"lib/main.d.ts","exports":{".":{"types":"./lib/main.d.ts","require":"./lib/main.js","default":"./lib/main.js"},"./config":"./config.js","./config.js":"./config.js","./lib/env-options":"./lib/env-options.js","./lib/env-options.js":"./lib/env-options.js","./lib/cli-options":"./lib/cli-options.js","./lib/cli-options.js":"./lib/cli-options.js","./package.json":"./package.json"},"scripts":{"dts-check":"tsc --project tests/types/tsconfig.json","lint":"standard","lint-readme":"standard-markdown","pretest":"npm run lint && npm run dts-check","test":"tap tests/*.js --100 -Rspec","test:coverage":"tap --coverage-report=lcov","prerelease":"npm test","release":"standard-version"},"repository":{"type":"git","url":"git://github.com/motdotla/dotenv.git"},"funding":"https://dotenvx.com","keywords":["dotenv","env",".env","environment","variables","config","settings"],"readmeFilename":"README.md","license":"BSD-2-Clause","devDependencies":{"@definitelytyped/dtslint":"^0.0.133","@types/node":"^18.11.3","decache":"^4.6.1","sinon":"^14.0.1","standard":"^17.0.0","standard-markdown":"^7.1.0","standard-version":"^9.5.0","tap":"^16.3.0","tar":"^6.1.11","typescript":"^4.8.4"},"engines":{"node":">=12"},"browser":{"fs":false}}'
-    );
-  },
   56: (e) => {
     e.exports = JSON.parse(
       '{"name":"dotenv","version":"16.4.7","description":"Loads environment variables from .env file","main":"lib/main.js","types":"lib/main.d.ts","exports":{".":{"types":"./lib/main.d.ts","require":"./lib/main.js","default":"./lib/main.js"},"./config":"./config.js","./config.js":"./config.js","./lib/env-options":"./lib/env-options.js","./lib/env-options.js":"./lib/env-options.js","./lib/cli-options":"./lib/cli-options.js","./lib/cli-options.js":"./lib/cli-options.js","./package.json":"./package.json"},"scripts":{"dts-check":"tsc --project tests/types/tsconfig.json","lint":"standard","pretest":"npm run lint && npm run dts-check","test":"tap run --allow-empty-coverage --disable-coverage --timeout=60000","test:coverage":"tap run --show-full-coverage --timeout=60000 --coverage-report=lcov","prerelease":"npm test","release":"standard-version"},"repository":{"type":"git","url":"git://github.com/motdotla/dotenv.git"},"funding":"https://dotenvx.com","keywords":["dotenv","env",".env","environment","variables","config","settings"],"readmeFilename":"README.md","license":"BSD-2-Clause","devDependencies":{"@types/node":"^18.11.3","decache":"^4.6.2","sinon":"^14.0.1","standard":"^17.0.0","standard-version":"^9.5.0","tap":"^19.2.0","typescript":"^4.8.4"},"engines":{"node":">=12"},"browser":{"fs":false}}'
@@ -63898,7 +63628,7 @@ function default_Default(...e) {
   return e.length === 3 ? default_Visit(e[0], e[1], e[2]) : default_Visit(e[0], [], e[1]);
 }
 var no = __nccwpck_require__(7484);
-var io = __nccwpck_require__(2801);
+var io = __nccwpck_require__(8889);
 var ao = class _PluginRuntimeInfo {
   static _instance = null;
   _env = {};
@@ -63950,83 +63680,116 @@ function getPluginOptions(e) {
     bypassSignatureVerification: e?.bypassSignatureVerification || false,
   };
 }
-var lo = "UbiquityOS";
-var postComment = async function (e, r, et = { updateComment: true, raw: false }) {
-  let At;
-  if ("issue" in e.payload) {
-    At = e.payload.issue.number;
-  } else if ("pull_request" in e.payload) {
-    At = e.payload.pull_request.number;
-  } else if ("discussion" in e.payload) {
-    At = e.payload.discussion.number;
-  } else {
-    e.logger.info("Cannot post comment because issue is not found in the payload.");
-    return null;
-  }
-  if ("repository" in e.payload && e.payload.repository?.owner?.login) {
-    const tt = await createStructuredMetadataWithMessage(e, r, et);
-    if (et.updateComment && postComment.lastCommentId) {
-      const r = await e.octokit.rest.issues.updateComment({
-        owner: e.payload.repository.owner.login,
-        repo: e.payload.repository.name,
-        comment_id: postComment.lastCommentId,
-        body: tt,
-      });
-      return { ...r.data, issueNumber: At };
-    } else {
-      const r = await e.octokit.rest.issues.createComment({
-        owner: e.payload.repository.owner.login,
-        repo: e.payload.repository.name,
-        issue_number: At,
-        body: tt,
-      });
-      postComment.lastCommentId = r.data.id;
-      return { ...r.data, issueNumber: At };
+var lo = class _CommentHandler {
+  static HEADER_NAME = "UbiquityOS";
+  _lastCommentId = { reviewCommentId: null, issueCommentId: null };
+  async _updateIssueComment(e, r) {
+    if (!this._lastCommentId.issueCommentId) {
+      throw e.logger.error("issueCommentId is missing");
     }
-  } else {
-    e.logger.info("Cannot post comment because repository is not found in the payload.", { payload: e.payload });
+    const et = await e.octokit.rest.issues.updateComment({ owner: r.owner, repo: r.repo, comment_id: this._lastCommentId.issueCommentId, body: r.body });
+    return { ...et.data, issueNumber: r.issueNumber };
   }
-  return null;
+  async _updateReviewComment(e, r) {
+    if (!this._lastCommentId.reviewCommentId) {
+      throw e.logger.error("reviewCommentId is missing");
+    }
+    const et = await e.octokit.rest.pulls.updateReviewComment({ owner: r.owner, repo: r.repo, comment_id: this._lastCommentId.reviewCommentId, body: r.body });
+    return { ...et.data, issueNumber: r.issueNumber };
+  }
+  async _createNewComment(e, r) {
+    if (r.commentId) {
+      const et = await e.octokit.rest.pulls.createReplyForReviewComment({
+        owner: r.owner,
+        repo: r.repo,
+        pull_number: r.issueNumber,
+        comment_id: r.commentId,
+        body: r.body,
+      });
+      this._lastCommentId.reviewCommentId = et.data.id;
+      return { ...et.data, issueNumber: r.issueNumber };
+    }
+    const et = await e.octokit.rest.issues.createComment({ owner: r.owner, repo: r.repo, issue_number: r.issueNumber, body: r.body });
+    this._lastCommentId.issueCommentId = et.data.id;
+    return { ...et.data, issueNumber: r.issueNumber };
+  }
+  _getIssueNumber(e) {
+    if ("issue" in e.payload) return e.payload.issue.number;
+    if ("pull_request" in e.payload) return e.payload.pull_request.number;
+    if ("discussion" in e.payload) return e.payload.discussion.number;
+    return void 0;
+  }
+  _getCommentId(e) {
+    return "pull_request" in e.payload && "comment" in e.payload ? e.payload.comment.id : void 0;
+  }
+  _extractIssueContext(e) {
+    if (!("repository" in e.payload) || !e.payload.repository?.owner?.login) {
+      return null;
+    }
+    const r = this._getIssueNumber(e);
+    if (!r) return null;
+    return { issueNumber: r, commentId: this._getCommentId(e), owner: e.payload.repository.owner.login, repo: e.payload.repository.name };
+  }
+  async _processMessage(e, r) {
+    if (r instanceof Error) {
+      const et = { message: r.message, name: r.name, stack: r.stack };
+      return { metadata: et, logMessage: e.logger.error(r.message).logMessage };
+    }
+    const et = r.metadata
+      ? {
+          ...r.metadata,
+          message: r.metadata.message,
+          stack: r.metadata.stack || r.metadata.error?.stack,
+          caller: r.metadata.caller || r.metadata.error?.stack?.split("\n")[2]?.match(/at (\S+)/)?.[1],
+        }
+      : { ...r };
+    return { metadata: et, logMessage: r.logMessage };
+  }
+  _getInstigatorName(e) {
+    if ("installation" in e.payload && e.payload.installation && "account" in e.payload.installation && e.payload.installation?.account?.name) {
+      return e.payload.installation?.account?.name;
+    }
+    return e.payload.sender?.login || _CommentHandler.HEADER_NAME;
+  }
+  async _createMetadataContent(e, r) {
+    const et = sanitizeMetadata(r);
+    const At = this._getInstigatorName(e);
+    const tt = ao.getInstance().runUrl;
+    const rt = await ao.getInstance().version;
+    const st = r.caller || "anonymous";
+    return { header: `\x3c!-- ${_CommentHandler.HEADER_NAME} - ${st} - ${rt} - @${At} - ${tt}`, jsonPretty: et };
+  }
+  _formatMetadataContent(e, r, et) {
+    const At = ["```json", et, "```"].join("\n");
+    const tt = [r, et, "--\x3e"].join("\n");
+    return e?.type === "fatal" ? [At, tt].join("\n") : tt;
+  }
+  async _createCommentBody(e, r, et) {
+    const { metadata: At, logMessage: tt } = await this._processMessage(e, r);
+    const { header: rt, jsonPretty: st } = await this._createMetadataContent(e, At);
+    const ot = this._formatMetadataContent(tt, rt, st);
+    return `${et.raw ? tt?.raw : tt?.diff}\n\n${ot}\n`;
+  }
+  async postComment(e, r, et = { updateComment: true, raw: false }) {
+    const At = this._extractIssueContext(e);
+    if (!At) {
+      e.logger.info("Cannot post comment: missing issue context in payload");
+      return null;
+    }
+    const tt = await this._createCommentBody(e, r, et);
+    const { issueNumber: rt, commentId: st, owner: ot, repo: nt } = At;
+    const it = { owner: ot, repo: nt, body: tt, issueNumber: rt };
+    if (et.updateComment) {
+      if (this._lastCommentId.issueCommentId && !("pull_request" in e.payload && "comment" in e.payload)) {
+        return this._updateIssueComment(e, it);
+      }
+      if (this._lastCommentId.reviewCommentId && "pull_request" in e.payload && "comment" in e.payload) {
+        return this._updateReviewComment(e, it);
+      }
+    }
+    return this._createNewComment(e, { ...it, commentId: st });
+  }
 };
-async function createStructuredMetadataWithMessage(e, r, et) {
-  let At;
-  let tt;
-  let rt;
-  let st;
-  if (r instanceof Error) {
-    st = { message: r.message, name: r.name, stack: r.stack };
-    tt = r.stack?.split("\n")[2]?.match(/at (\S+)/)?.[1] ?? "anonymous";
-    At = e.logger.error(r.message).logMessage;
-  } else if (r.metadata) {
-    st = {
-      message: r.metadata.message,
-      stack: r.metadata.stack || r.metadata.error?.stack,
-      caller: r.metadata.caller || r.metadata.error?.stack?.split("\n")[2]?.match(/at (\S+)/)?.[1],
-    };
-    At = r.logMessage;
-    tt = st.caller;
-  } else {
-    st = { ...r };
-  }
-  const ot = sanitizeMetadata(st);
-  if ("installation" in e.payload && e.payload.installation && "account" in e.payload.installation) {
-    rt = e.payload.installation?.account?.name;
-  } else {
-    rt = e.payload.sender?.login || lo;
-  }
-  const nt = ao.getInstance().runUrl;
-  const it = await ao.getInstance().version;
-  const at = `\x3c!-- ${lo} - ${tt} - ${it} - @${rt} - ${nt}`;
-  let ct;
-  const gt = ["```json", ot, "```"].join("\n");
-  const It = [at, ot, "--\x3e"].join("\n");
-  if (At?.type === "fatal") {
-    ct = [gt, It].join("\n");
-  } else {
-    ct = It;
-  }
-  return `${et.raw ? At?.raw : At?.diff}\n\n${ct}\n`;
-}
 var uo = {
   throttle: {
     onAbuseLimit: (e, r, et) => {
@@ -64089,7 +63852,7 @@ function createPlugin(e, r, et) {
   const At = getPluginOptions(et);
   const tt = new Hono();
   tt.get("/manifest.json", (e) => e.json(r));
-  tt.post("/", async (r) => {
+  tt.post("/", async function appPost(r) {
     if (r.req.header("content-type") !== "application/json") {
       throw new HTTPException(400, { message: "Content-Type must be application/json" });
     }
@@ -64148,6 +63911,7 @@ function createPlugin(e, r, et) {
       config: ot,
       env: nt,
       logger: new Logs(At.logLevel),
+      commentHandler: new lo(),
     };
     try {
       const et = await e(gt);
@@ -64161,7 +63925,7 @@ function createPlugin(e, r, et) {
         r = gt.logger.error(`Error: ${e}`);
       }
       if (At.postCommentOnError && r) {
-        await postComment(gt, r);
+        await gt.commentHandler.postComment(gt, r);
       }
       throw new HTTPException(500, { message: "Unexpected error" });
     }
@@ -64180,7 +63944,7 @@ async function createActionsPlugin(e, r) {
   const rt = [...Errors(ho, tt)];
   if (rt.length) {
     console.dir(rt, { depth: null });
-    no.setFailed(`Error: Invalid inputs payload: ${rt.join(",")}`);
+    no.setFailed(`Error: Invalid inputs payload: ${rt.map((e) => e.message).join(", ")}`);
     return;
   }
   const st = tt.signature;
@@ -64195,6 +63959,7 @@ async function createActionsPlugin(e, r) {
       at = Decode(et.settingsSchema, default_Default(et.settingsSchema, ot.settings));
     } catch (e) {
       console.dir(...Errors(et.settingsSchema, ot.settings), { depth: null });
+      no.setFailed(`Error: Invalid settings provided.`);
       throw e;
     }
   } else {
@@ -64206,6 +63971,7 @@ async function createActionsPlugin(e, r) {
       ct = Decode(et.envSchema, default_Default(et.envSchema, process.env));
     } catch (e) {
       console.dir(...Errors(et.envSchema, process.env), { depth: null });
+      no.setFailed(`Error: Invalid environment provided.`);
       throw e;
     }
   } else {
@@ -64230,6 +63996,7 @@ async function createActionsPlugin(e, r) {
     config: at,
     env: ct,
     logger: new it(et.logLevel),
+    commentHandler: new lo(),
   };
   try {
     const r = await e(It);
@@ -64249,7 +64016,7 @@ async function createActionsPlugin(e, r) {
       r = It.logger.error(`Error: ${e}`);
     }
     if (et.postCommentOnError && r) {
-      await postComment(It, r);
+      await It.commentHandler.postComment(It, r);
     }
   }
 }
@@ -64327,28 +64094,35 @@ function parseYaml(e) {
 }
 var wo = __nccwpck_require__(7071);
 var bo = __nccwpck_require__.n(wo);
-async function decryptKeys(e, r, et) {
+async function decrypt(e, r) {
   await bo().ready;
-  let At = null;
-  At = await getScalarKey(et);
-  if (!At) {
-    e.logger.error("Public key is null");
-    return { decryptedText: null, publicKey: null };
-  }
-  if (!r?.length) {
-    e.logger.error("No cipherText was provided");
-    return { decryptedText: null, publicKey: null };
-  }
-  const tt = bo().from_base64(At, bo().base64_variants.URLSAFE_NO_PADDING);
-  const rt = bo().from_base64(et, bo().base64_variants.URLSAFE_NO_PADDING);
-  const st = bo().from_base64(r, bo().base64_variants.URLSAFE_NO_PADDING);
-  const ot = bo().crypto_box_seal_open(st, tt, rt, "text");
-  return { decryptedText: ot, publicKey: At };
+  const et = await getPublicKey(r);
+  const At = bo().from_base64(et, bo().base64_variants.URLSAFE_NO_PADDING);
+  const tt = bo().from_base64(r, bo().base64_variants.URLSAFE_NO_PADDING);
+  const rt = bo().from_base64(e, bo().base64_variants.URLSAFE_NO_PADDING);
+  return bo().crypto_box_seal_open(rt, At, tt, "text");
 }
-async function getScalarKey(e) {
+async function getPublicKey(e) {
   await bo().ready;
   const r = bo().from_base64(e, bo().base64_variants.URLSAFE_NO_PADDING);
   return bo().crypto_scalarmult_base(r, "base64");
+}
+function parseDecryptedPrivateKey(e) {
+  const r = { privateKey: null, allowedOrganizationId: null, allowedRepositoryId: null };
+  const et = e.split(":");
+  if (et.length === 1) {
+    r.privateKey = et[0];
+  }
+  if (et.length === 2) {
+    r.privateKey = et[0];
+    r.allowedOrganizationId = Number(et[1]);
+  }
+  if (et.length === 3) {
+    r.privateKey = et[0];
+    r.allowedOrganizationId = Number(et[1]);
+    r.allowedRepositoryId = Number(et[2]);
+  }
+  return r;
 }
 async function callPersonalAgent(e) {
   const { logger: r, payload: et } = e;
@@ -64366,32 +64140,39 @@ async function callPersonalAgent(e) {
   const st = rt[1];
   r.info(`Comment received:`, { owner: At, personalAgentOwner: st, comment: tt });
   try {
-    const r = await getPersonalAgentConfig(e, st);
-    if (!r.config) {
-      throw new Error(`No personal agent config found on ${st}/personal-agent`);
+    const et = await getPersonalAgentConfig(e, st);
+    if (!et.config) {
+      throw r.error(`No personal agent config found on ${st}/personal-agent`);
     }
-    const et = await decryptKeys(e, r.config.GITHUB_PAT_ENCRYPTED, e.env.X25519_PRIVATE_KEY);
-    const At = new fo({ auth: et.decryptedText });
-    const tt = (await At.rest.repos.get({ owner: st, repo: "personal-agent" })).data.default_branch;
-    await At.rest.actions.createWorkflowDispatch({
+    const {
+      privateKey: At,
+      allowedOrganizationId: tt,
+      allowedRepositoryId: rt,
+    } = parseDecryptedPrivateKey(await decrypt(et.config.GITHUB_PAT_ENCRYPTED, e.env.X25519_PRIVATE_KEY));
+    const ot = new fo({ auth: At });
+    const nt = (await ot.rest.repos.get({ owner: st, repo: "personal-agent" })).data;
+    if (tt !== nt.owner.id || (rt && rt !== nt.id)) {
+      throw r.error(`Personal agent PAT does not allow running on ${nt.owner.login}/${nt.name}`);
+    }
+    const it = nt.default_branch;
+    await ot.rest.actions.createWorkflowDispatch({
       owner: st,
       repo: "personal-agent",
       workflow_id: "compute.yml",
-      ref: tt,
+      ref: it,
       inputs: {
         stateId: crypto.randomUUID(),
         eventName: e.eventName,
         eventPayload: JSON.stringify(e.payload),
         settings: JSON.stringify(e.config),
-        authToken: et.decryptedText,
+        authToken: At,
         command: "null",
-        ref: tt,
+        ref: it,
         signature: "no-signature",
       },
     });
   } catch (e) {
-    r.error(`Error dispatching workflow: ${e}`);
-    return;
+    throw r.error(`Error dispatching workflow: ${e}`, { error: e instanceof Error ? e : undefined });
   }
   r.ok(`Successfully sent the command to ${st}/personal-agent`);
   r.verbose(`Exiting callPersonalAgent`);
