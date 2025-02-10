@@ -1,5 +1,102 @@
 # `@ubiquity-os/plugin-template`
 
+## Technical Architecture
+
+### Overview
+
+This plugin template is built on a modern TypeScript-based architecture that runs on Cloudflare Workers, providing a serverless execution environment for UbiquityOS plugins. The architecture consists of several key components:
+
+- **Worker Runtime**: Built on Cloudflare Workers using the `wrangler` framework
+- **Plugin SDK Integration**: Leverages `@ubiquity-os/plugin-sdk` for core plugin functionality
+- **Type Safety**: Comprehensive TypeScript type system with runtime validation
+- **Event Handling**: Event-driven architecture with GitHub webhook support
+- **Configuration Management**: JSON-schema based configuration system
+
+### Core Components
+
+1. **Worker Entry Point** (`src/worker.ts`):
+   - Initializes the plugin using `createPlugin` from the SDK
+   - Handles incoming webhook requests
+   - Manages environment variables and plugin settings
+   - Configures logging and error handling
+
+2. **Plugin Logic** (`src/index.ts`):
+   - Contains the main plugin routing logic
+   - Handles event type validation and routing
+   - Dispatches events to appropriate handlers
+
+3. **Event Handlers** (`src/handlers/`):
+   - Contain specific logic for different GitHub events
+   - Implement plugin commands and functionality
+   - Handle GitHub API interactions
+
+4. **Type System** (`src/types/`):
+   - Defines plugin settings schema
+   - Provides event type guards
+   - Manages environment variable types
+   - Ensures type safety throughout the application
+
+### Configuration System
+
+The plugin uses a multi-layered configuration approach:
+
+1. **Manifest** (`manifest.json`):
+   ```json
+   {
+     "name": "ts-template",
+     "ubiquity:listeners": ["issue_comment.created"],
+     "commands": {
+       "hello": {
+         "description": "Hello command with an argument."
+       }
+     },
+     "configuration": {
+       "properties": {
+         "configurableResponse": {
+           "type": "string",
+           "default": "Hello, world!"
+         }
+       }
+     }
+   }
+   ```
+
+2. **Environment Variables**:
+   - Runtime configuration via `.env` files
+   - Cloudflare Worker secrets for production
+   - Type-safe environment variable handling
+
+3. **Plugin Settings**:
+   - User-configurable options defined in manifest
+   - Runtime validation using JSON Schema
+   - Organization/repository level overrides
+
+### Development Workflow
+
+The template provides a robust development workflow:
+
+1. **Local Development**:
+   - `bun worker` for local testing
+   - Hot-reloading development server
+   - Local webhook testing support
+
+2. **Testing Infrastructure**:
+   - Jest-based test suite
+   - Mock system for GitHub API
+   - Type-safe test utilities
+
+3. **Code Quality**:
+   - ESLint configuration
+   - Prettier formatting
+   - Husky git hooks
+   - Conventional commits
+
+4. **Deployment**:
+   - Automated Cloudflare Workers deployment
+   - GitHub Actions integration
+   - Environment-specific configurations
+
+
 ## Prerequisites
 
 - A good understanding of how the [kernel](https://github.com/ubiquity/ubiquibot-kernel) works and how to interact with it.
