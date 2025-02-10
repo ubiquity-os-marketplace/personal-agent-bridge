@@ -1,6 +1,6 @@
 import { Octokit } from "@octokit/rest";
 import { getPersonalAgentConfig } from "../helpers/config";
-import { decryptKeys } from "../helpers/keys";
+import { decrypt, parseDecryptedPrivateKey } from "../helpers/keys";
 import { Context } from "../types";
 
 /**
@@ -35,16 +35,22 @@ export async function callPersonalAgent(context: Context) {
     const personalAgentConfig = await getPersonalAgentConfig(context, personalAgentOwner);
 
     if (!personalAgentConfig.config) {
-      throw new Error(`No personal agent config found on ${personalAgentOwner}/personal-agent`);
+      throw logger.error(`No personal agent config found on ${personalAgentOwner}/personal-agent`);
     }
 
-    const patDecrypted = await decryptKeys(context, personalAgentConfig.config.GITHUB_PAT_ENCRYPTED, context.env.X25519_PRIVATE_KEY);
+    const { privateKey, allowedOrganizationId, allowedRepositoryId } = parseDecryptedPrivateKey(
+      await decrypt(personalAgentConfig.config.GITHUB_PAT_ENCRYPTED, context.env.X25519_PRIVATE_KEY)
+    );
 
     const paOctokit = new Octokit({
-      auth: patDecrypted.decryptedText,
+      auth: privateKey,
     });
 
-    const defaultBranch = (await paOctokit.rest.repos.get({ owner: personalAgentOwner, repo: "personal-agent" })).data.default_branch;
+    const repo = (await paOctokit.rest.repos.get({ owner: personalAgentOwner, repo: "personal-agent" })).data;
+    if (allowedOrganizationId !== repo.owner.id || (allowedRepositoryId && allowedRepositoryId !== repo.id)) {
+      throw logger.error(`Personal agent PAT does not allow running on ${repo.owner.login}/${repo.name}`);
+    }
+    const defaultBranch = repo.default_branch;
 
     await paOctokit.rest.actions.createWorkflowDispatch({
       owner: personalAgentOwner,
@@ -56,15 +62,14 @@ export async function callPersonalAgent(context: Context) {
         eventName: context.eventName,
         eventPayload: JSON.stringify(context.payload),
         settings: JSON.stringify(context.config),
-        authToken: patDecrypted.decryptedText,
+        authToken: privateKey,
         command: "null",
         ref: defaultBranch,
         signature: "no-signature",
       },
     });
   } catch (error) {
-    logger.error(`Error dispatching workflow: ${error}`);
-    return;
+    throw logger.error(`Error dispatching workflow: ${error}`, { error: error instanceof Error ? error : undefined });
   }
 
   logger.ok(`Successfully sent the command to ${personalAgentOwner}/personal-agent`);

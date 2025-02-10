@@ -1,7 +1,9 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { drop } from "@mswjs/data";
+import { CommentHandler } from "@ubiquity-os/plugin-sdk";
 import { customOctokit as Octokit } from "@ubiquity-os/plugin-sdk/octokit";
 import { Logs } from "@ubiquity-os/ubiquity-os-logger";
+import { http, HttpResponse } from "msw";
 import manifest from "../manifest.json";
 import { runPlugin } from "../src/index";
 import { Env } from "../src/types";
@@ -83,6 +85,28 @@ describe("Personal Agent Bridge Plugin tests", () => {
 
     expect(errorSpy).toHaveBeenNthCalledWith(1, `Error dispatching workflow: Error: incorrect key pair for the given ciphertext`);
   });
+
+  it("Should fail on wrong organization/owner", async () => {
+    const { context, errorSpy, infoSpy } = createContext();
+    server.use(
+      http.get("https://api.github.com/repos/:owner/:repo/contents/.github%2Fpersonal-agent.config.yml", () => {
+        const content = `GITHUB_PAT_ENCRYPTED: "erIGLwzgm3Vs4gXTJg3-Byr6niB_G0u_Ty3KvOeF-j7jhprsKS2kbijeT66Sxx4sheq0bThyrXAELZ-I1Hl-odb0uhRVnld_nX8mVJn4F7FoG77aPDlKCHvvD7vMlmOc8FcZoEY6V5UAvz2liduwNpMJCDVcZz01iK-hsgvHjuNVbHtUbNL55Nt2zKPsgh3fvA"`;
+        return HttpResponse.text(content);
+      })
+    );
+    expect(context.eventName).toBe(commentCreateEvent);
+
+    await expect(runPlugin(context)).resolves.toBeUndefined();
+
+    expect(infoSpy).toHaveBeenNthCalledWith(1, `Comment received:`, {
+      caller: STRINGS.CALLER_LOGS_ANON,
+      personalAgentOwner: STRINGS.personalAgentOwner,
+      owner: STRINGS.USER,
+      comment: STRINGS.commentBody,
+    });
+
+    expect(errorSpy).toHaveBeenNthCalledWith(1, `Personal agent PAT does not allow running on ${STRINGS.USER}/personal-agent`);
+  });
 });
 
 /**
@@ -155,5 +179,6 @@ function createContextInner(
     },
     octokit: octokit,
     command: null,
+    commentHandler: new CommentHandler(),
   };
 }

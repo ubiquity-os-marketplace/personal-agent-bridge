@@ -48,7 +48,7 @@ export const handlers = [
   }),
 
   http.get("https://api.github.com/repos/:owner/:repo/contents/.github%2Fpersonal-agent.config.yml", () => {
-    const content = `GITHUB_PAT_ENCRYPTED: "4p8Ze2HiVxqnmumJK1zg2VLnHnNsAlDu8axE7BlkqQH6f6otvsJZWAOI2TlFr0LHQihZQKwuTxyYZLmHSuM6incWqAV62za7q5PKR7sC1JIlRYX8gf5XqZfT2spsXoqPlaSo4iLxkef_qpS8SgG57H-7pgb6ihcANA-IA8_dza28jFEnVl79YxVIq9mU"`;
+    const content = `GITHUB_PAT_ENCRYPTED: "4tRWEPGv5rUVp1f6TrXPDNzvX-FUtpfupzUQYsZCoDhv0zbV9JkxkVF-NpjAkFhf369P64mKWbbdj356rw0kyBr8pbKM2le8k4cF7BtbslhFyQ7OvKU7_Q1A1uMRcJX3jyyxVYj0xl3KgmBf1WuPpHtPIvErh8ybjMWpnM8mPAVa7HD3sBE_KyPi1tQqLEw4Zg"`;
     return HttpResponse.text(content);
   }),
 
