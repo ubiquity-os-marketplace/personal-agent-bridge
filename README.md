@@ -4,7 +4,7 @@
 
 ### Overview
 
-This plugin template is built on a modern TypeScript-based architecture that runs on Cloudflare Workers, providing a serverless execution environment for Ubiquibot plugins. The architecture consists of several key components:
+This plugin template is built on a modern TypeScript-based architecture that runs on Cloudflare Workers, providing a serverless execution environment for UbiquityOS plugins. The architecture consists of several key components:
 
 - **Worker Runtime**: Built on Cloudflare Workers using the `wrangler` framework
 - **Plugin SDK Integration**: Leverages `@ubiquity-os/plugin-sdk` for core plugin functionality
