@@ -1,6 +1,5 @@
-import { helloWorld } from "./handlers/hello-world";
+import { callPersonalAgent } from "./handlers/call-personal-agent";
 import { Context } from "./types";
-import { isIssueCommentEvent } from "./types/typeguards";
 
 /**
  * The main plugin function. Split for easier testing.
@@ -8,8 +7,8 @@ import { isIssueCommentEvent } from "./types/typeguards";
 export async function runPlugin(context: Context) {
   const { logger, eventName } = context;
 
-  if (isIssueCommentEvent(context)) {
-    return await helloWorld(context);
+  if (eventName === "issue_comment.created") {
+    return await callPersonalAgent(context);
   }
 
   logger.error(`Unsupported event: ${eventName}`);

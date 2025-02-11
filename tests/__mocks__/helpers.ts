@@ -20,7 +20,7 @@ export async function setupTests() {
     id: 1,
     name: STRINGS.TEST_REPO,
     owner: {
-      login: STRINGS.USER_1,
+      login: STRINGS.USER,
       id: 1,
     },
     issues: [],
@@ -66,7 +66,7 @@ export function createComment(comment: string, commentId: number) {
       body: comment,
       issue_number: 1,
       user: {
-        login: STRINGS.USER_1,
+        login: STRINGS.USER,
         id: 1,
       },
     });
