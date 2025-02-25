@@ -1,4 +1,5 @@
 import { Octokit } from "@octokit/rest";
+import { PluginInput } from "@ubiquity-os/plugin-sdk/signature";
 import { getPersonalAgentConfig } from "../helpers/config";
 import { decrypt, parseDecryptedPrivateKey } from "../helpers/keys";
 import { Context } from "../types";
@@ -38,35 +39,39 @@ export async function callPersonalAgent(context: Context) {
       throw logger.error(`No personal agent config found on ${personalAgentOwner}/personal-agent`);
     }
 
-    const { privateKey, allowedOrganizationId, allowedRepositoryId } = parseDecryptedPrivateKey(
-      await decrypt(personalAgentConfig.config.GITHUB_PAT_ENCRYPTED, context.env.X25519_PRIVATE_KEY)
-    );
+    const {
+      privateKey: userPat,
+      allowedOrganizationId,
+      allowedRepositoryId,
+    } = parseDecryptedPrivateKey(await decrypt(personalAgentConfig.config.GITHUB_PAT_ENCRYPTED, context.env.X25519_PRIVATE_KEY));
 
     const paOctokit = new Octokit({
-      auth: privateKey,
+      auth: userPat,
     });
 
     const repo = (await paOctokit.rest.repos.get({ owner: personalAgentOwner, repo: "personal-agent" })).data;
-    if (allowedOrganizationId !== repo.owner.id || (allowedRepositoryId && allowedRepositoryId !== repo.id)) {
+    if (!userPat || allowedOrganizationId !== repo.owner.id || (allowedRepositoryId && allowedRepositoryId !== repo.id)) {
       throw logger.error(`Personal agent PAT does not allow running on ${repo.owner.login}/${repo.name}`);
     }
     const defaultBranch = repo.default_branch;
+
+    const pluginInput = new PluginInput(
+      context.env.APP_PRIVATE_KEY,
+      crypto.randomUUID(),
+      context.eventName,
+      context.payload,
+      context.config,
+      userPat,
+      defaultBranch,
+      null
+    );
 
     await paOctokit.rest.actions.createWorkflowDispatch({
       owner: personalAgentOwner,
       repo: "personal-agent",
       workflow_id: "compute.yml",
       ref: defaultBranch,
-      inputs: {
-        stateId: crypto.randomUUID(),
-        eventName: context.eventName,
-        eventPayload: JSON.stringify(context.payload),
-        settings: JSON.stringify(context.config),
-        authToken: privateKey,
-        command: "null",
-        ref: defaultBranch,
-        signature: "no-signature",
-      },
+      inputs: await pluginInput.getInputs(),
     });
   } catch (error) {
     throw logger.error(`Error dispatching workflow: ${error}`, { error: error instanceof Error ? error : undefined });
