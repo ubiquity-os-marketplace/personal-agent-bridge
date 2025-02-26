@@ -176,6 +176,23 @@ function createContextInner(
     config: {},
     env: {
       X25519_PRIVATE_KEY: "lkQCx6wMxB7V8oXVxWDdEY2xqAF5VqJx7dLIK4qMyIw",
+      APP_ID: "test",
+      APP_PRIVATE_KEY: `-----BEGIN PRIVATE KEY-----
+MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAPNftFKuTmAKzgii
+jnXfNtDwXRkbA/j82+pPFFtVyUgTV25jw0KjaAzEBp6Rj2MO4oQug+PfPTWLwnvQ
+UihtMVS4gfCCK6DlfTPo1ESNUOGBC5XUAmMNkN5c2qfwG+Mvn77/AsNYfadCOaF5
+ubsH8vxMs6yXOUxvybkY6AObiyJfAgMBAAECgYEAhbeHtAXhOhO1sDjgXRMPYy0t
+eaXGQP9tNQfN/4Da3qcB2r0lg2+Us67glC8VwS9kdYu5G3KEhu8LJEwJV/zmpLt8
+7YZnH3OT+2eChIbNBaC6cwvdKK+Q0DvSS4FnJKWLjYUYtEob8KuFroCLL6MFJanx
+uC5fo3mrt5bgB2lXcAECQQD/xRVgPNPMyxIodJ4NNYbulsqB1bnT4EDo2xC7ollZ
+5McL9AEkqMiEzaUqhNsBTfb+IRabtAWezsbKrdMVmQdfAkEA85fD9dIYCkgfKs3K
+fmO5zIa9gxYpnksXpbC1RCdduPMVaB8hDVMdl43QA/J/zdkdUK5wq8gJRFS+wdwD
+wHrFAQJAGtm1xMSd94HaBiU38msMHz/1QmwNdhC0v70/pHMGrkk2HCshc5fEdSyh
+ijUoSJrGsycGGJJthJ5wgBZ/cmT+QQJBAIBKqfZJlEe1/FQ61i8CrtQ9Eop7nae0
+vNuS2aTvZrkFrXyNCIdQAwHSun+ZtB3h/0KC3OxcCiVmzKClE4TIJAECQQDfyQxG
+0FuTi6qKDkW0oMLx5vdWvXrHwYDAkpBBn8cI6IBsevVtph/ggrmKrYkhEyRasToy
+QD6nsO7d61MTjIzS
+-----END PRIVATE KEY-----`,
     },
     octokit: octokit,
     command: null,

@@ -54551,7 +54551,7 @@ function __nccwpck_require__(e) {
 if (typeof __nccwpck_require__ !== "undefined")
   __nccwpck_require__.ab = new URL(".", import.meta.url).pathname.slice(import.meta.url.match(/^file:\/\/\/\w:/) ? 1 : 0, -1) + "/";
 var At = {};
-__nccwpck_require__.d(At, { A: () => vo });
+__nccwpck_require__.d(At, { A: () => Fo });
 var tt = {};
 __nccwpck_require__.r(tt);
 __nccwpck_require__.d(tt, {
@@ -63790,6 +63790,30 @@ var lo = class _CommentHandler {
     return this._createNewComment(e, { ...it, commentId: st });
   }
 };
+function transformError(e, r) {
+  let et;
+  if (r instanceof AggregateError) {
+    et = e.logger.error(
+      r.errors
+        .map((e) => {
+          if (e instanceof nt) {
+            return e.logMessage.raw;
+          } else if (e instanceof Error) {
+            return e.message;
+          } else {
+            return e;
+          }
+        })
+        .join("\n\n"),
+      { error: r }
+    );
+  } else if (r instanceof Error || r instanceof nt) {
+    et = r;
+  } else {
+    et = e.logger.error(String(r));
+  }
+  return et;
+}
 var uo = {
   throttle: {
     onAbuseLimit: (e, r, et) => {
@@ -63918,12 +63942,7 @@ function createPlugin(e, r, et) {
       return r.json({ stateId: st.stateId, output: et ?? {} });
     } catch (e) {
       console.error(e);
-      let r;
-      if (e instanceof Error || e instanceof LogReturn2) {
-        r = e;
-      } else {
-        r = gt.logger.error(`Error: ${e}`);
-      }
+      const r = transformError(gt, e);
       if (At.postCommentOnError && r) {
         await gt.commentHandler.postComment(gt, r);
       }
@@ -64004,16 +64023,11 @@ async function createActionsPlugin(e, r) {
     await returnDataToKernel(At, ot.stateId, r);
   } catch (e) {
     console.error(e);
-    let r;
-    if (e instanceof Error) {
-      no.setFailed(e);
-      r = It.logger.error(`Error: ${e}`, { error: e });
-    } else if (e instanceof nt) {
-      no.setFailed(e.logMessage.raw);
-      r = e;
-    } else {
-      no.setFailed(`Error: ${e}`);
-      r = It.logger.error(`Error: ${e}`);
+    const r = transformError(It, e);
+    if (r instanceof nt) {
+      no.setFailed(r.logMessage.diff);
+    } else if (r instanceof Error) {
+      no.setFailed(r);
     }
     if (et.postCommentOnError && r) {
       await It.commentHandler.postComment(It, r);
@@ -64052,19 +64066,85 @@ function requestLog(e) {
 requestLog.VERSION = po;
 const Bo = "21.1.0";
 const fo = Octokit.plugin(requestLog, legacyRestEndpointMethods, paginateRest).defaults({ userAgent: `octokit-rest.js/${Bo}` });
-var Qo = __nccwpck_require__(8815);
-const yo = Vs.Object({ GITHUB_PAT_ENCRYPTED: Vs.String() }, { default: {} });
-const mo = ".github/personal-agent.config.yml";
-const _o = "personal-agent";
+var Qo = class {
+  _privateKey;
+  stateId;
+  eventName;
+  eventPayload;
+  settings;
+  authToken;
+  ref;
+  command;
+  constructor(e, r, et, At, tt, rt, st, ot) {
+    this._privateKey = e;
+    this.stateId = r;
+    this.eventName = et;
+    this.eventPayload = At;
+    this.settings = tt;
+    this.authToken = rt;
+    this.ref = st;
+    this.command = ot;
+  }
+  async getInputs() {
+    const e = {
+      stateId: this.stateId,
+      eventName: this.eventName,
+      eventPayload: JSON.stringify(this.eventPayload),
+      settings: JSON.stringify(this.settings),
+      authToken: this.authToken,
+      ref: this.ref,
+      command: JSON.stringify(this.command),
+    };
+    const r = await signPayload(JSON.stringify(e), this._privateKey);
+    return { ...e, signature: r };
+  }
+};
+async function signature_verifySignature(e, r, et) {
+  try {
+    const At = {
+      stateId: r.stateId,
+      eventName: r.eventName,
+      eventPayload: r.eventPayload,
+      settings: r.settings,
+      authToken: r.authToken,
+      ref: r.ref,
+      command: r.command,
+    };
+    const tt = e.replace("-----BEGIN PUBLIC KEY-----", "").replace("-----END PUBLIC KEY-----", "").trim();
+    const rt = Uint8Array.from(atob(tt), (e) => e.charCodeAt(0));
+    const st = await crypto.subtle.importKey("spki", rt, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, true, ["verify"]);
+    const ot = Uint8Array.from(atob(et), (e) => e.charCodeAt(0));
+    const nt = new TextEncoder().encode(JSON.stringify(At));
+    return await crypto.subtle.verify("RSASSA-PKCS1-v1_5", st, ot, nt);
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+}
+async function importRsaPrivateKey(e) {
+  const r = e.replace("-----BEGIN PRIVATE KEY-----", "").replace("-----END PRIVATE KEY-----", "").trim();
+  const et = Uint8Array.from(atob(r), (e) => e.charCodeAt(0));
+  return await crypto.subtle.importKey("pkcs8", et.buffer, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, true, ["sign"]);
+}
+async function signPayload(e, r) {
+  const et = new TextEncoder().encode(e);
+  const At = await importRsaPrivateKey(r);
+  const tt = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", At, et);
+  return btoa(String.fromCharCode(...new Uint8Array(tt)));
+}
+var yo = __nccwpck_require__(8815);
+const mo = Vs.Object({ GITHUB_PAT_ENCRYPTED: Vs.String() }, { default: {} });
+const _o = ".github/personal-agent.config.yml";
+const wo = "personal-agent";
 async function getPersonalAgentConfig(e, r) {
-  const et = await download({ context: e, repository: _o, owner: r });
+  const et = await download({ context: e, repository: wo, owner: r });
   const { yaml: At, errors: tt } = parseYaml(et);
   const rt = At;
   if (rt) {
     try {
-      return { config: Decode(yo, default_Default(yo, rt)), errors: tt, rawData: et };
+      return { config: Decode(mo, default_Default(mo, rt)), errors: tt, rawData: et };
     } catch (e) {
-      console.error(`Error decoding personal agent configuration for ${r}/${_o}, will ignore.`, e);
+      console.error(`Error decoding personal agent configuration for ${r}/${wo}, will ignore.`, e);
       return { config: null, errors: [e instanceof TransformDecodeCheckError ? e.error : e], rawData: et };
     }
   }
@@ -64073,7 +64153,7 @@ async function getPersonalAgentConfig(e, r) {
 async function download({ context: e, repository: r, owner: et }) {
   if (!r || !et) throw new Error("Repo or owner is not defined");
   try {
-    const { data: At } = await e.octokit.rest.repos.getContent({ owner: et, repo: r, path: mo, mediaType: { format: "raw" } });
+    const { data: At } = await e.octokit.rest.repos.getContent({ owner: et, repo: r, path: _o, mediaType: { format: "raw" } });
     return At;
   } catch (e) {
     console.error(e);
@@ -64083,7 +64163,7 @@ async function download({ context: e, repository: r, owner: et }) {
 function parseYaml(e) {
   try {
     if (e) {
-      const r = Qo.parse(e);
+      const r = yo.parse(e);
       return { yaml: r ?? null, errors: null };
     }
   } catch (e) {
@@ -64092,20 +64172,20 @@ function parseYaml(e) {
   }
   return { yaml: null, errors: null };
 }
-var wo = __nccwpck_require__(7071);
-var bo = __nccwpck_require__.n(wo);
+var bo = __nccwpck_require__(7071);
+var Do = __nccwpck_require__.n(bo);
 async function decrypt(e, r) {
-  await bo().ready;
+  await Do().ready;
   const et = await getPublicKey(r);
-  const At = bo().from_base64(et, bo().base64_variants.URLSAFE_NO_PADDING);
-  const tt = bo().from_base64(r, bo().base64_variants.URLSAFE_NO_PADDING);
-  const rt = bo().from_base64(e, bo().base64_variants.URLSAFE_NO_PADDING);
-  return bo().crypto_box_seal_open(rt, At, tt, "text");
+  const At = Do().from_base64(et, Do().base64_variants.URLSAFE_NO_PADDING);
+  const tt = Do().from_base64(r, Do().base64_variants.URLSAFE_NO_PADDING);
+  const rt = Do().from_base64(e, Do().base64_variants.URLSAFE_NO_PADDING);
+  return Do().crypto_box_seal_open(rt, At, tt, "text");
 }
 async function getPublicKey(e) {
-  await bo().ready;
-  const r = bo().from_base64(e, bo().base64_variants.URLSAFE_NO_PADDING);
-  return bo().crypto_scalarmult_base(r, "base64");
+  await Do().ready;
+  const r = Do().from_base64(e, Do().base64_variants.URLSAFE_NO_PADDING);
+  return Do().crypto_scalarmult_base(r, "base64");
 }
 function parseDecryptedPrivateKey(e) {
   const r = { privateKey: null, allowedOrganizationId: null, allowedRepositoryId: null };
@@ -64151,26 +64231,12 @@ async function callPersonalAgent(e) {
     } = parseDecryptedPrivateKey(await decrypt(et.config.GITHUB_PAT_ENCRYPTED, e.env.X25519_PRIVATE_KEY));
     const ot = new fo({ auth: At });
     const nt = (await ot.rest.repos.get({ owner: st, repo: "personal-agent" })).data;
-    if (tt !== nt.owner.id || (rt && rt !== nt.id)) {
+    if (!At || tt !== nt.owner.id || (rt && rt !== nt.id)) {
       throw r.error(`Personal agent PAT does not allow running on ${nt.owner.login}/${nt.name}`);
     }
     const it = nt.default_branch;
-    await ot.rest.actions.createWorkflowDispatch({
-      owner: st,
-      repo: "personal-agent",
-      workflow_id: "compute.yml",
-      ref: it,
-      inputs: {
-        stateId: crypto.randomUUID(),
-        eventName: e.eventName,
-        eventPayload: JSON.stringify(e.payload),
-        settings: JSON.stringify(e.config),
-        authToken: At,
-        command: "null",
-        ref: it,
-        signature: "no-signature",
-      },
-    });
+    const at = new Qo(e.env.APP_PRIVATE_KEY, crypto.randomUUID(), e.eventName, e.payload, e.config, At, it, null);
+    await ot.rest.actions.createWorkflowDispatch({ owner: st, repo: "personal-agent", workflow_id: "compute.yml", ref: it, inputs: await at.getInputs() });
   } catch (e) {
     throw r.error(`Error dispatching workflow: ${e}`, { error: e instanceof Error ? e : undefined });
   }
@@ -64184,21 +64250,23 @@ async function runPlugin(e) {
   }
   r.error(`Unsupported event: ${et}`);
 }
-var Do = __nccwpck_require__(2874);
-const ko = Vs.Object({
+var ko = __nccwpck_require__(2874);
+const So = Vs.Object({
   LOG_LEVEL: Vs.Optional(Vs.Enum(st, { default: st.INFO })),
   KERNEL_PUBLIC_KEY: Vs.Optional(Vs.String()),
+  APP_ID: Vs.String(),
+  APP_PRIVATE_KEY: Vs.String(),
   X25519_PRIVATE_KEY: Vs.String(),
 });
-const So = Vs.Object({}, { default: {} });
-const vo = createActionsPlugin((e) => runPlugin(e), {
+const vo = Vs.Object({}, { default: {} });
+const Fo = createActionsPlugin((e) => runPlugin(e), {
   logLevel: process.env.LOG_LEVEL || st.INFO,
-  settingsSchema: So,
-  envSchema: ko,
+  settingsSchema: vo,
+  envSchema: So,
   ...(process.env.KERNEL_PUBLIC_KEY && { kernelPublicKey: process.env.KERNEL_PUBLIC_KEY }),
   postCommentOnError: true,
   bypassSignatureVerification: process.env.NODE_ENV === "local",
 });
-var Fo = At.A;
-export { Fo as default };
+var Ro = At.A;
+export { Ro as default };
 //# sourceMappingURL=index.js.map
