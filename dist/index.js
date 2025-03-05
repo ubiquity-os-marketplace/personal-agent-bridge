@@ -64264,7 +64264,7 @@ const Fo = createActionsPlugin((e) => runPlugin(e), {
   settingsSchema: vo,
   envSchema: So,
   ...(process.env.KERNEL_PUBLIC_KEY && { kernelPublicKey: process.env.KERNEL_PUBLIC_KEY }),
-  postCommentOnError: true,
+  postCommentOnError: false,
   bypassSignatureVerification: process.env.NODE_ENV === "local",
 });
 var Ro = At.A;
