@@ -12,7 +12,7 @@ export default createActionsPlugin<PluginSettings, Env, null, SupportedEvents>(
     settingsSchema: pluginSettingsSchema,
     envSchema: envSchema,
     ...(process.env.KERNEL_PUBLIC_KEY && { kernelPublicKey: process.env.KERNEL_PUBLIC_KEY }),
-    postCommentOnError: true,
+    postCommentOnError: false,
     bypassSignatureVerification: process.env.NODE_ENV === "local",
   }
 );
