@@ -1,7 +1,4 @@
-import { Octokit } from "@octokit/rest";
 import { PluginInput } from "@ubiquity-os/plugin-sdk/signature";
-import { getPersonalAgentConfig } from "../helpers/config";
-import { decrypt, parseDecryptedPrivateKey } from "../helpers/keys";
 import { Context } from "../types";
 
 /**
@@ -33,26 +30,7 @@ export async function callPersonalAgent(context: Context) {
   logger.info(`Comment received:`, { owner, personalAgentOwner, comment: body });
 
   try {
-    const personalAgentConfig = await getPersonalAgentConfig(context, personalAgentOwner);
-
-    if (!personalAgentConfig.config) {
-      throw logger.error(`No personal agent config found on ${personalAgentOwner}/personal-agent`);
-    }
-
-    const {
-      privateKey: userPat,
-      allowedOrganizationId,
-      allowedRepositoryId,
-    } = parseDecryptedPrivateKey(await decrypt(personalAgentConfig.config.GITHUB_PAT_ENCRYPTED, context.env.X25519_PRIVATE_KEY));
-
-    const paOctokit = new Octokit({
-      auth: userPat,
-    });
-
-    const repo = (await paOctokit.rest.repos.get({ owner: personalAgentOwner, repo: "personal-agent" })).data;
-    if (!userPat || allowedOrganizationId !== repo.owner.id || (allowedRepositoryId && allowedRepositoryId !== repo.id)) {
-      throw logger.error(`Personal agent PAT does not allow running on ${repo.owner.login}/${repo.name}`);
-    }
+    const repo = (await context.octokit.rest.repos.get({ owner: personalAgentOwner, repo: "personal-agent" })).data;
     const defaultBranch = repo.default_branch;
 
     const pluginInput = new PluginInput(
@@ -61,12 +39,12 @@ export async function callPersonalAgent(context: Context) {
       context.eventName,
       context.payload,
       context.config,
-      userPat,
+      "",
       defaultBranch,
       null
     );
 
-    await paOctokit.rest.actions.createWorkflowDispatch({
+    await context.octokit.rest.actions.createWorkflowDispatch({
       owner: personalAgentOwner,
       repo: "personal-agent",
       workflow_id: "compute.yml",
