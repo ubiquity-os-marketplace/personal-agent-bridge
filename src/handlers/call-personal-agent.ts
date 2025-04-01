@@ -1,3 +1,4 @@
+import { createAppAuth } from "@octokit/auth-app";
 import { customOctokit } from "@ubiquity-os/plugin-sdk/octokit";
 import { PluginInput } from "@ubiquity-os/plugin-sdk/signature";
 import { Context } from "../types";
@@ -33,6 +34,7 @@ export async function callPersonalAgent(context: Context) {
 
   try {
     const kernelOctokit = new customOctokit({
+      authStrategy: createAppAuth,
       auth: {
         privateKey: context.env.APP_PRIVATE_KEY,
         appId: Number(context.env.APP_ID),
@@ -45,6 +47,7 @@ export async function callPersonalAgent(context: Context) {
       })
     ).data.id;
     const repoOctokit = new customOctokit({
+      authStrategy: createAppAuth,
       auth: {
         privateKey: context.env.APP_PRIVATE_KEY,
         appId: Number(context.env.APP_ID),

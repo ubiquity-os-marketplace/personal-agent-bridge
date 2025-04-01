@@ -32,6 +32,7 @@
     "open-source"
   ],
   "dependencies": {
+    "@octokit/auth-app": "^7.1.5",
     "@sinclair/typebox": "0.34.15",
     "@ubiquity-os/plugin-sdk": "3.1.0",
     "@ubiquity-os/ubiquity-os-logger": "^1.4.0",

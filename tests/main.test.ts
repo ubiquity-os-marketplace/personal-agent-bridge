@@ -3,7 +3,6 @@ import { drop } from "@mswjs/data";
 import { CommentHandler } from "@ubiquity-os/plugin-sdk";
 import { customOctokit as Octokit } from "@ubiquity-os/plugin-sdk/octokit";
 import { Logs } from "@ubiquity-os/ubiquity-os-logger";
-import { http, HttpResponse } from "msw";
 import manifest from "../manifest.json";
 import { Env } from "../src/types";
 import { Context } from "../src/types/context";
@@ -61,15 +60,6 @@ describe("Personal Agent Bridge Plugin tests", () => {
   });
 
   it("Should handle personal agent command", async () => {
-    server.use(
-      http.get("https://api.github.com/repos/:owner/:repo", () => {
-        return HttpResponse.json({
-          data: {
-            default_branch: "main",
-          },
-        });
-      })
-    );
     const callPersonalAgent = (await import("../src/handlers/call-personal-agent")).callPersonalAgent;
     const { context, errorSpy, okSpy, infoSpy, verboseSpy } = createContext();
 
