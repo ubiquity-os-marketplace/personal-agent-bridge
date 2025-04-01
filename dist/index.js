@@ -21914,7 +21914,7 @@ function __nccwpck_require__(e) {
 if (typeof __nccwpck_require__ !== "undefined")
   __nccwpck_require__.ab = new URL(".", import.meta.url).pathname.slice(import.meta.url.match(/^file:\/\/\/\w:/) ? 1 : 0, -1) + "/";
 var s = {};
-__nccwpck_require__.d(s, { A: () => Dt });
+__nccwpck_require__.d(s, { A: () => St });
 var o = {};
 __nccwpck_require__.r(o);
 __nccwpck_require__.d(o, {
@@ -31395,7 +31395,24 @@ async function returnDataToKernel(e, t, r) {
     client_payload: { state_id: t, output: r ? JSON.stringify(r) : null },
   });
 }
-var Rt = class {
+var Rt = {
+  throttle: {
+    onAbuseLimit: (e, t, r) => {
+      r.log.warn(`Abuse limit hit with "${t.method} ${t.url}", retrying in ${e} seconds.`);
+      return true;
+    },
+    onRateLimit: (e, t, r) => {
+      r.log.warn(`Rate limit hit with "${t.method} ${t.url}", retrying in ${e} seconds.`);
+      return true;
+    },
+    onSecondaryRateLimit: (e, t, r) => {
+      r.log.warn(`Secondary rate limit hit with "${t.method} ${t.url}", retrying in ${e} seconds.`);
+      return true;
+    },
+  },
+};
+var Tt = Octokit.plugin(throttling, retry, paginateRest, restEndpointMethods, paginateGraphQL).defaults((e) => ({ ...Rt, ...e }));
+var kt = class {
   _privateKey;
   stateId;
   eventName;
@@ -31475,12 +31492,16 @@ async function callPersonalAgent(e) {
     return;
   }
   const n = A[1];
+  const i = "personal-agent";
   t.info(`Comment received:`, { owner: s, personalAgentOwner: n, comment: o });
   try {
-    const t = (await e.octokit.rest.repos.get({ owner: n, repo: "personal-agent" })).data;
-    const r = t.default_branch;
-    const s = new Rt(e.env.APP_PRIVATE_KEY, crypto.randomUUID(), e.eventName, e.payload, e.config, "", r, null);
-    await e.octokit.rest.actions.createWorkflowDispatch({ owner: n, repo: "personal-agent", workflow_id: "compute.yml", ref: r, inputs: await s.getInputs() });
+    const t = new Tt({ auth: { privateKey: e.env.APP_PRIVATE_KEY, appId: e.env.APP_ID } });
+    const r = (await t.rest.apps.getRepoInstallation({ owner: n, repo: i })).data.id;
+    const s = new Tt({ auth: { privateKey: e.env.APP_PRIVATE_KEY, appId: e.env.APP_ID, installationId: r } });
+    const o = (await s.rest.repos.get({ owner: n, repo: i })).data;
+    const A = o.default_branch;
+    const a = new kt(e.env.APP_PRIVATE_KEY, crypto.randomUUID(), e.eventName, e.payload, e.config, "", A, null);
+    await s.rest.actions.createWorkflowDispatch({ owner: n, repo: i, workflow_id: "compute.yml", ref: A, inputs: await a.getInputs() });
   } catch (e) {
     throw t.error(`Error dispatching workflow: ${e}`, { error: e instanceof Error ? e : undefined });
   }
@@ -31494,23 +31515,23 @@ async function runPlugin(e) {
   }
   t.error(`Unsupported event: ${r}`);
 }
-var Tt = __nccwpck_require__(2874);
-const kt = tt.Object({
+var _t = __nccwpck_require__(2874);
+const Dt = tt.Object({
   LOG_LEVEL: tt.Optional(tt.Enum(n, { default: n.INFO })),
   KERNEL_PUBLIC_KEY: tt.Optional(tt.String()),
   APP_ID: tt.String(),
   APP_PRIVATE_KEY: tt.String(),
   X25519_PRIVATE_KEY: tt.String(),
 });
-const _t = tt.Object({}, { default: {} });
-const Dt = createActionsPlugin((e) => runPlugin(e), {
+const Ft = tt.Object({}, { default: {} });
+const St = createActionsPlugin((e) => runPlugin(e), {
   logLevel: process.env.LOG_LEVEL || n.INFO,
-  settingsSchema: _t,
-  envSchema: kt,
+  settingsSchema: Ft,
+  envSchema: Dt,
   ...(process.env.KERNEL_PUBLIC_KEY && { kernelPublicKey: process.env.KERNEL_PUBLIC_KEY }),
   postCommentOnError: false,
   bypassSignatureVerification: process.env.NODE_ENV === "local",
 });
-var Ft = s.A;
-export { Ft as default };
+var vt = s.A;
+export { vt as default };
 //# sourceMappingURL=index.js.map
