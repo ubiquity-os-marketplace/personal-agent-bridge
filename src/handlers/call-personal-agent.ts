@@ -1,3 +1,4 @@
+import { customOctokit } from "@ubiquity-os/plugin-sdk/octokit";
 import { PluginInput } from "@ubiquity-os/plugin-sdk/signature";
 import { Context } from "../types";
 
@@ -27,10 +28,30 @@ export async function callPersonalAgent(context: Context) {
   }
 
   const personalAgentOwner = targetUser[1];
+  const personalAgentRepo = "personal-agent";
   logger.info(`Comment received:`, { owner, personalAgentOwner, comment: body });
 
   try {
-    const repo = (await context.octokit.rest.repos.get({ owner: personalAgentOwner, repo: "personal-agent" })).data;
+    const kernelOctokit = new customOctokit({
+      auth: {
+        privateKey: context.env.APP_PRIVATE_KEY,
+        appId: context.env.APP_ID,
+      },
+    });
+    const installationId = (
+      await kernelOctokit.rest.apps.getRepoInstallation({
+        owner: personalAgentOwner,
+        repo: personalAgentRepo,
+      })
+    ).data.id;
+    const repoOctokit = new customOctokit({
+      auth: {
+        privateKey: context.env.APP_PRIVATE_KEY,
+        appId: context.env.APP_ID,
+        installationId,
+      },
+    });
+    const repo = (await repoOctokit.rest.repos.get({ owner: personalAgentOwner, repo: personalAgentRepo })).data;
     const defaultBranch = repo.default_branch;
 
     const pluginInput = new PluginInput(
@@ -44,9 +65,9 @@ export async function callPersonalAgent(context: Context) {
       null
     );
 
-    await context.octokit.rest.actions.createWorkflowDispatch({
+    await repoOctokit.rest.actions.createWorkflowDispatch({
       owner: personalAgentOwner,
-      repo: "personal-agent",
+      repo: personalAgentRepo,
       workflow_id: "compute.yml",
       ref: defaultBranch,
       inputs: await pluginInput.getInputs(),
