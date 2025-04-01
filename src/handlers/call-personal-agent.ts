@@ -63,7 +63,7 @@ export async function callPersonalAgent(context: Context) {
       context.eventName,
       context.payload,
       context.config,
-      "",
+      "dummy-token",
       defaultBranch,
       null
     );
