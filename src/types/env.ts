@@ -7,7 +7,6 @@ export const envSchema = T.Object({
   KERNEL_PUBLIC_KEY: T.Optional(T.String()),
   APP_ID: T.String(),
   APP_PRIVATE_KEY: T.String(),
-  X25519_PRIVATE_KEY: T.String(),
 });
 
 export type Env = StaticDecode<typeof envSchema>;

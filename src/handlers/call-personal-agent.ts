@@ -35,7 +35,7 @@ export async function callPersonalAgent(context: Context) {
     const kernelOctokit = new customOctokit({
       auth: {
         privateKey: context.env.APP_PRIVATE_KEY,
-        appId: context.env.APP_ID,
+        appId: Number(context.env.APP_ID),
       },
     });
     const installationId = (
@@ -47,7 +47,7 @@ export async function callPersonalAgent(context: Context) {
     const repoOctokit = new customOctokit({
       auth: {
         privateKey: context.env.APP_PRIVATE_KEY,
-        appId: context.env.APP_ID,
+        appId: Number(context.env.APP_ID),
         installationId,
       },
     });
@@ -76,6 +76,6 @@ export async function callPersonalAgent(context: Context) {
     throw logger.error(`Error dispatching workflow: ${error}`, { error: error instanceof Error ? error : undefined });
   }
 
-  logger.ok(`Successfully sent the command to ${personalAgentOwner}/personal-agent`);
+  logger.ok(`Successfully sent the command to ${personalAgentOwner}/${personalAgentRepo}`);
   logger.verbose(`Exiting callPersonalAgent`);
 }
