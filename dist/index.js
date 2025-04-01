@@ -31495,9 +31495,9 @@ async function callPersonalAgent(e) {
   const i = "personal-agent";
   t.info(`Comment received:`, { owner: s, personalAgentOwner: n, comment: o });
   try {
-    const t = new Tt({ auth: { privateKey: e.env.APP_PRIVATE_KEY, appId: e.env.APP_ID } });
+    const t = new Tt({ auth: { privateKey: e.env.APP_PRIVATE_KEY, appId: Number(e.env.APP_ID) } });
     const r = (await t.rest.apps.getRepoInstallation({ owner: n, repo: i })).data.id;
-    const s = new Tt({ auth: { privateKey: e.env.APP_PRIVATE_KEY, appId: e.env.APP_ID, installationId: r } });
+    const s = new Tt({ auth: { privateKey: e.env.APP_PRIVATE_KEY, appId: Number(e.env.APP_ID), installationId: r } });
     const o = (await s.rest.repos.get({ owner: n, repo: i })).data;
     const A = o.default_branch;
     const a = new kt(e.env.APP_PRIVATE_KEY, crypto.randomUUID(), e.eventName, e.payload, e.config, "", A, null);
@@ -31505,7 +31505,7 @@ async function callPersonalAgent(e) {
   } catch (e) {
     throw t.error(`Error dispatching workflow: ${e}`, { error: e instanceof Error ? e : undefined });
   }
-  t.ok(`Successfully sent the command to ${n}/personal-agent`);
+  t.ok(`Successfully sent the command to ${n}/${i}`);
   t.verbose(`Exiting callPersonalAgent`);
 }
 async function runPlugin(e) {
@@ -31521,7 +31521,6 @@ const Dt = tt.Object({
   KERNEL_PUBLIC_KEY: tt.Optional(tt.String()),
   APP_ID: tt.String(),
   APP_PRIVATE_KEY: tt.String(),
-  X25519_PRIVATE_KEY: tt.String(),
 });
 const Ft = tt.Object({}, { default: {} });
 const St = createActionsPlugin((e) => runPlugin(e), {
