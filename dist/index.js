@@ -33807,7 +33807,7 @@ async function callPersonalAgent(e) {
     const s = new Xt({ authStrategy: createAppAuth, auth: { privateKey: e.env.APP_PRIVATE_KEY, appId: Number(e.env.APP_ID), installationId: r } });
     const o = (await s.rest.repos.get({ owner: A, repo: i })).data;
     const n = o.default_branch;
-    const a = new er(e.env.APP_PRIVATE_KEY, crypto.randomUUID(), e.eventName, e.payload, e.config, "", n, null);
+    const a = new er(e.env.APP_PRIVATE_KEY, crypto.randomUUID(), e.eventName, e.payload, e.config, "dummy-token", n, null);
     await s.rest.actions.createWorkflowDispatch({ owner: A, repo: i, workflow_id: "compute.yml", ref: n, inputs: await a.getInputs() });
   } catch (e) {
     throw t.error(`Error dispatching workflow: ${e}`, { error: e instanceof Error ? e : undefined });
