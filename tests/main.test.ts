@@ -3,15 +3,36 @@ import { drop } from "@mswjs/data";
 import { CommentHandler } from "@ubiquity-os/plugin-sdk";
 import { customOctokit as Octokit } from "@ubiquity-os/plugin-sdk/octokit";
 import { Logs } from "@ubiquity-os/ubiquity-os-logger";
-import { http, HttpResponse } from "msw";
 import manifest from "../manifest.json";
-import { runPlugin } from "../src/index";
 import { Env } from "../src/types";
 import { Context } from "../src/types/context";
 import { db } from "./__mocks__/db";
 import { createComment, setupTests } from "./__mocks__/helpers";
 import { server } from "./__mocks__/node";
 import { STRINGS } from "./__mocks__/strings";
+
+const createWorkflowDispatch = jest.fn(() => ({}));
+jest.unstable_mockModule("@ubiquity-os/plugin-sdk/octokit", () => {
+  return {
+    customOctokit: jest.fn(() => ({
+      rest: {
+        actions: {
+          createWorkflowDispatch: createWorkflowDispatch,
+        },
+        apps: {
+          getRepoInstallation: () => ({
+            data: { id: 123456 },
+          }),
+        },
+        repos: {
+          get: () => ({
+            data: { default_branch: "main" },
+          }),
+        },
+      },
+    })),
+  };
+});
 
 const octokit = new Octokit();
 const commentCreateEvent = "issue_comment.created";
@@ -39,11 +60,12 @@ describe("Personal Agent Bridge Plugin tests", () => {
   });
 
   it("Should handle personal agent command", async () => {
+    const callPersonalAgent = (await import("../src/handlers/call-personal-agent")).callPersonalAgent;
     const { context, errorSpy, okSpy, infoSpy, verboseSpy } = createContext();
 
     expect(context.eventName).toBe(commentCreateEvent);
 
-    await runPlugin(context);
+    await callPersonalAgent(context);
 
     expect(errorSpy).not.toHaveBeenCalled();
     expect(infoSpy).toHaveBeenNthCalledWith(1, `Comment received:`, {
@@ -54,58 +76,20 @@ describe("Personal Agent Bridge Plugin tests", () => {
     });
     expect(okSpy).toHaveBeenNthCalledWith(1, `Successfully sent the command to ${STRINGS.personalAgentOwner}/personal-agent`);
     expect(verboseSpy).toHaveBeenNthCalledWith(1, "Exiting callPersonalAgent");
+    expect(createWorkflowDispatch).toHaveBeenCalledTimes(1);
   });
 
   it("Should ignore irrelevant comments", async () => {
+    const callPersonalAgent = (await import("../src/handlers/call-personal-agent")).callPersonalAgent;
     const { context, errorSpy, infoSpy } = createContext("foo bar");
 
     expect(context.eventName).toBe(commentCreateEvent);
     expect(context.payload.comment.body).toBe("foo bar");
 
-    await runPlugin(context);
+    await callPersonalAgent(context);
 
     expect(errorSpy).not.toHaveBeenCalled();
     expect(infoSpy).toHaveBeenNthCalledWith(1, "Ignoring irrelevant comment: foo bar");
-  });
-
-  it("Should fail on wrong X25519_PRIVATE_KEY", async () => {
-    const { context, errorSpy, infoSpy } = createContext();
-    context.env.X25519_PRIVATE_KEY = "roWTTjNnyKI4VBHQ3JlLUR7bZpxGcHNYCqK4GgLcslA";
-
-    expect(context.eventName).toBe(commentCreateEvent);
-
-    await expect(runPlugin(context)).rejects.not.toBeUndefined();
-
-    expect(infoSpy).toHaveBeenNthCalledWith(1, `Comment received:`, {
-      caller: STRINGS.CALLER_LOGS_ANON,
-      personalAgentOwner: STRINGS.personalAgentOwner,
-      owner: STRINGS.USER,
-      comment: STRINGS.commentBody,
-    });
-
-    expect(errorSpy).toHaveBeenNthCalledWith(1, `Error dispatching workflow: Error: incorrect key pair for the given ciphertext`, expect.anything());
-  });
-
-  it("Should fail on wrong organization/owner", async () => {
-    const { context, errorSpy, infoSpy } = createContext();
-    server.use(
-      http.get("https://api.github.com/repos/:owner/:repo/contents/.github%2Fpersonal-agent.config.yml", () => {
-        const content = `GITHUB_PAT_ENCRYPTED: "erIGLwzgm3Vs4gXTJg3-Byr6niB_G0u_Ty3KvOeF-j7jhprsKS2kbijeT66Sxx4sheq0bThyrXAELZ-I1Hl-odb0uhRVnld_nX8mVJn4F7FoG77aPDlKCHvvD7vMlmOc8FcZoEY6V5UAvz2liduwNpMJCDVcZz01iK-hsgvHjuNVbHtUbNL55Nt2zKPsgh3fvA"`;
-        return HttpResponse.text(content);
-      })
-    );
-    expect(context.eventName).toBe(commentCreateEvent);
-
-    await expect(runPlugin(context)).rejects.not.toBeUndefined();
-
-    expect(infoSpy).toHaveBeenNthCalledWith(1, `Comment received:`, {
-      caller: STRINGS.CALLER_LOGS_ANON,
-      personalAgentOwner: STRINGS.personalAgentOwner,
-      owner: STRINGS.USER,
-      comment: STRINGS.commentBody,
-    });
-
-    expect(errorSpy).toHaveBeenNthCalledWith(1, `Personal agent PAT does not allow running on ${STRINGS.USER}/personal-agent`);
   });
 });
 
@@ -175,8 +159,7 @@ function createContextInner(
     logger: new Logs("debug") as unknown as Context["logger"],
     config: {},
     env: {
-      X25519_PRIVATE_KEY: "lkQCx6wMxB7V8oXVxWDdEY2xqAF5VqJx7dLIK4qMyIw",
-      APP_ID: "test",
+      APP_ID: "368861",
       APP_PRIVATE_KEY: `-----BEGIN PRIVATE KEY-----
 MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAPNftFKuTmAKzgii
 jnXfNtDwXRkbA/j82+pPFFtVyUgTV25jw0KjaAzEBp6Rj2MO4oQug+PfPTWLwnvQ
