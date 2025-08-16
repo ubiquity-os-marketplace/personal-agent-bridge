@@ -46,13 +46,16 @@ export const handlers = [
     db.issueComments.create(newItem);
     return HttpResponse.json(newItem);
   }),
-  // update comment
-  http.patch("https://api.github.com/repos/:owner/:repo/issues/comments/:id", async ({ params: { issue_number: issueNumber }, request }) => {
-    const { body } = await getValue(request.body);
-    const id = db.issueComments.count();
-    const newItem = { id, body, issue_number: Number(issueNumber), user: db.users.getAll()[0] };
-    db.issueComments.update({ where: { id: { equals: id } }, data: newItem });
-    return HttpResponse.json(newItem);
+
+  http.get("https://api.github.com/repos/:owner/:repo/contents/.github%2Fpersonal-agent.config.yml", () => {
+    const content = `GITHUB_PAT_ENCRYPTED: "4tRWEPGv5rUVp1f6TrXPDNzvX-FUtpfupzUQYsZCoDhv0zbV9JkxkVF-NpjAkFhf369P64mKWbbdj356rw0kyBr8pbKM2le8k4cF7BtbslhFyQ7OvKU7_Q1A1uMRcJX3jyyxVYj0xl3KgmBf1WuPpHtPIvErh8ybjMWpnM8mPAVa7HD3sBE_KyPi1tQqLEw4Zg"`;
+    return HttpResponse.text(content);
+  }),
+
+  http.post("https://api.github.com/repos/:owner/:repo/actions/workflows/compute.yml/dispatches", () => {
+    return new HttpResponse(null, {
+      status: 204,
+    });
   }),
 ];
 

@@ -1,7 +1,7 @@
 {
-  "name": "plugin-template",
+  "name": "@ubiquity-os/personal-agent-bridge",
   "version": "1.0.0",
-  "description": "Ubiquibot plugin template repository with TypeScript support.",
+  "description": "Forwards personal commands in comments to respective user's personal agent plugin",
   "author": "Ubiquity DAO",
   "license": "MIT",
   "main": "src/worker.ts",
@@ -32,18 +32,18 @@
     "open-source"
   ],
   "dependencies": {
+    "@octokit/auth-app": "^7.1.5",
     "@sinclair/typebox": "0.34.15",
-    "@ubiquity-os/plugin-sdk": "^2.0.6",
+    "@ubiquity-os/plugin-sdk": "3.1.0",
     "@ubiquity-os/ubiquity-os-logger": "^1.4.0",
     "dotenv": "16.4.7",
-    "hono": "^4.6.19",
-    "ts-node": "^10.9.2"
+    "hono": "^4.6.19"
   },
   "devDependencies": {
     "@commitlint/cli": "19.6.1",
     "@commitlint/config-conventional": "19.6.0",
     "@cspell/dict-node": "5.0.6",
-    "@cspell/dict-software-terms": "4.2.4",
+    "@cspell/dict-software-terms": "5.0.3",
     "@cspell/dict-typescript": "3.2.0",
     "@eslint/js": "9.19.0",
     "@jest/globals": "29.7.0",
@@ -61,12 +61,14 @@
     "jest-md-dashboard": "0.8.0",
     "knip": "5.43.6",
     "lint-staged": "15.4.3",
+    "msw": "^2.7.0",
     "npm-run-all": "4.1.5",
     "prettier": "3.4.2",
     "ts-jest": "29.2.5",
+    "ts-node": "^10.9.2",
     "typescript": "5.6.2",
     "typescript-eslint": "8.22.0",
-    "wrangler": "3.102.0"
+    "wrangler": "3.114.3"
   },
   "lint-staged": {
     "*.ts": [
