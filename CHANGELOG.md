@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/ubiquity-os-marketplace/personal-agent-bridge/compare/v1.0.0...v1.0.1) (2025-09-06)
+
+
+### Bug Fixes
+
+* wrong file name ([339e757](https://github.com/ubiquity-os-marketplace/personal-agent-bridge/commit/339e757deeadac97bff9ae5d55831e592d5c590b))
+
 ## 1.0.0 (2025-08-16)
 
 
