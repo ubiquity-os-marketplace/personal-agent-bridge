@@ -42,12 +42,6 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Install deps (bun)
-        run: bun install --frozen-lockfile || bun install
-
-      - name: Build (bun)
-        run: bun run build
-
       - name: execute directive
         run: bun ./dist/index.js
         id: plugin-name
