@@ -33,6 +33,7 @@ jobs:
       LOG_LEVEL: ${{ secrets.LOG_LEVEL || 'info' }}
       APP_ID: ${{ secrets.APP_ID }}
       APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+      NODE_ENV: local
 
     steps:
       - uses: actions/checkout@v4
