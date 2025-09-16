@@ -1,4 +1,5 @@
 import { createAppAuth } from "@octokit/auth-app";
+import { compressString } from "@ubiquity-os/plugin-sdk/compression";
 import { customOctokit } from "@ubiquity-os/plugin-sdk/octokit";
 import { PluginInput } from "@ubiquity-os/plugin-sdk/signature";
 import { Context } from "../types";
@@ -68,12 +69,17 @@ export async function callPersonalAgent(context: Context) {
       null
     );
 
+    const inputs = await pluginInput.getInputs();
+    const encodedInputs = {
+      ...inputs,
+      eventPayload: compressString(inputs.eventPayload),
+    };
     await repoOctokit.rest.actions.createWorkflowDispatch({
       owner: personalAgentOwner,
       repo: personalAgentRepo,
       workflow_id: "compute.yml",
       ref: defaultBranch,
-      inputs: await pluginInput.getInputs(),
+      inputs: encodedInputs,
     });
   } catch (error) {
     throw logger.error(`Error dispatching workflow: ${error}`, { error: error instanceof Error ? error : undefined });
