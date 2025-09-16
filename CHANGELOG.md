@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1](https://github.com/ubiquity-os-marketplace/personal-agent-bridge/compare/v1.0.0...v1.0.1) (2025-09-16)
+
+
+### Bug Fixes
+
+* compress eventPayload before workflow dispatch ([d0b5f42](https://github.com/ubiquity-os-marketplace/personal-agent-bridge/commit/d0b5f4205a904b5270b526110d828b23d5bd6e64))
+* compress eventPayload before workflow dispatch ([b1ac616](https://github.com/ubiquity-os-marketplace/personal-agent-bridge/commit/b1ac616279bbfda4c9de410444a5548cbed3a10a))
+* wrong file name ([339e757](https://github.com/ubiquity-os-marketplace/personal-agent-bridge/commit/339e757deeadac97bff9ae5d55831e592d5c590b))
+
 ## 1.0.0 (2025-08-16)
 
 
