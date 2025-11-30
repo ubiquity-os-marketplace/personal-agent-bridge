@@ -7,5 +7,6 @@
     "type": "object",
     "properties": {}
   },
-  "homepage_url": "https://your-plugin-name-bridge.ubiquity.workers.dev"
+  "homepage_url": "https://your-plugin-name-bridge.ubiquity.workers.dev",
+  "short_name": "ubiquity-os-marketplace/personal-agent-bridge@development"
 }
