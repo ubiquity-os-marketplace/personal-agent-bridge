@@ -1,7 +1,9 @@
 {
-  "name": "Peronal Agent Bridge",
-  "description": "Forward personal commands in comments to respective user's personal agent plugin",
-  "ubiquity:listeners": ["issue_comment.created"],
+  "name": "@ubiquity-os/personal-agent-bridge",
+  "short_name": "gentlementlegen/personal-agent-bridge@codex/fix/manifest-build",
+  "description": "Forwards personal commands in comments to respective user's personal agent plugin",
+  "ubiquity:listeners": [],
+  "skipBotEvents": true,
   "configuration": {
     "default": {},
     "type": "object",
